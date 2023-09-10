@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Person;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -32,6 +33,18 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
+        });
+
+        Route::bind('person', function (string $uuid) {
+
+            if (! cache()->has('person-' . $uuid)) {
+                $person = Person::query()->whereId($uuid)->firstOrFail();
+                cache()->put('person-' . $person->id, $person);
+
+                return $person;
+            }
+
+            return cache()->get('person-' . $uuid);
         });
     }
 }

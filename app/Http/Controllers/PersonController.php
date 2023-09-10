@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PersonWasCreated;
 use App\Http\Requests\StorePersonRequest;
 use App\Models\Person;
 use Illuminate\Http\JsonResponse;
@@ -26,9 +27,14 @@ class PersonController extends Controller
 
     public function create(StorePersonRequest $request): JsonResponse
     {
+        /** @var Person $person */
+        $person = Person::query()->create($request->validated());
+
+        event(new PersonWasCreated($person));
+
         return response()->json(
-            Person::query()->create($request->validated())
-        )->header('Location', '/pessoas/' . Person::query()->latest()->first()->id);
+            $person
+        )->header('Location', '/pessoas/' . $person->id);
     }
 
     public function show(Person $person): JsonResponse
